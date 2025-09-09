@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    container_name: laravel-project
+    ports:
+      - "80:80"
+    volumes:
+      - ./app:/app
+    tty: true
+    restart: unless-stopped
