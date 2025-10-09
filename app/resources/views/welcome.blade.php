@@ -129,5 +129,8 @@
                 </div>
             </div>
         </div>
+        <footer class="bg-dark text-white text-center py-3 fixed-bottom">
+          <p>Ильин Артём 241-3210</p>
+        </footer>
     </body>
 </html>
