@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Comment;
 use App\Models\Article;
-use App\Mail\Commentmail;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Mail;
-
+use App\Jobs\VeryLongJob;
 
 
 class CommentController extends Controller
@@ -28,7 +26,7 @@ class CommentController extends Controller
         $comment->article_id = $request->article_id;
         $comment->user_id = auth()->id();
         if($comment->save())
-            Mail::to('kittehsmtp@mail.ru')->send(new Commentmail($comment, $article));
+            VeryLongJob::dispatch($article, $comment, auth()->user()->name);
         return redirect()->route('article.show', $request->article_id)->with('message', "Comment add succesful and enter for moderation");
     }
 

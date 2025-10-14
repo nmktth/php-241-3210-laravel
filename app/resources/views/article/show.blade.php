@@ -25,7 +25,7 @@
   </div>
 </div>
 
-<h2>New Comment</h2>
+<h2>Comments</h2>
 <ul class="list-group mb-3">
     @foreach($errors->all() as $error)
         <li class="list-group-item list-group-item-danger">{{$error}}</li>

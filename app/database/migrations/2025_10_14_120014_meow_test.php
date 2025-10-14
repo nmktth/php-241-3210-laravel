@@ -14,7 +14,7 @@ return new class extends Migration
         // Schema::table('users', function(Blueprint $table){
         //     $table->string('role')->default('reader')->add();
         // });
-        DB::table('users')->where('id', 1)->update(['role' => 'moderator']);
+        // DB::table('users')->where('id', 1)->update(['role' => 'moderator']);
     }
 
     /**
