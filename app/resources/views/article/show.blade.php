@@ -46,11 +46,18 @@
     <p class="card-text">{{$comment->text}}</p>
     <div class="btn-toolbar mt-3" role="toolbar">
     @can('comment', $comment)
-      <a href="/comment/edit/{{$comment->id}}" class="btn btn-primary me-3">Edit comment</a>
-      <a href="/comment/delete/{{$comment->id}}" class="btn btn-primary me-3">Delete comment</a>
+      <a href="{{ route('comment.edit', $comment) }}" class="btn btn-primary me-3">Edit comment</a>
+    @endcan
+    @can('comment', $comment)
+      <form action="{{ route('comment.destroy', $comment) }}" method="POST" class="d-inline">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-danger me-3">Delete comment</button>
+      </form>
     @endcan
     </div>    
   </div>
 </div>
 @endforeach
+
 @endsection

@@ -18,6 +18,7 @@
   </thead>
   <tbody>
     @foreach($comments as $comment)
+    @can('comment.accept', $comment)
     <tr>
       <th scope="row">{{$comment->created_at}}</th>
       <td>{{App\Models\User::FindOrFail($comment->user_id)->name}}</td>
@@ -31,6 +32,7 @@
         @endif
        </td>
     </tr>
+    @endcan
     @endforeach
   </tbody>
 </table>

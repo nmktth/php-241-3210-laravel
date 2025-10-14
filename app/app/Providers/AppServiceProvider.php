@@ -36,5 +36,13 @@ class AppServiceProvider extends ServiceProvider
             ? Response::allow()
             : Response::deny('Your don`t moderator');
         });
+
+        Gate::define('comment.accept', function (User $user, Comment $comment): Response|bool {
+            return Response::deny('Только модератор может принимать комментарии.');
+        });
+
+        Gate::define('comment.reject', function (User $user, Comment $comment): Response|bool {
+            return Response::deny('Только модератор может отклонять комментарии.');
+        });
     }
 }

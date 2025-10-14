@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::table('users', function(Blueprint $table){
-        //     $table->string('role')->default('reader')->add();
-        // });
-        DB::table('users')->where('id', 2)->update(['role' => 'moderate']);
+        Schema::table('users', function(Blueprint $table){
+            $table->string('role')->default('reader')->add();
+        });
     }
 
     /**

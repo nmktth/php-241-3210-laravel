@@ -32,26 +32,51 @@ class CommentController extends Controller
         return redirect()->route('article.show', $request->article_id)->with('message', "Comment add succesful and enter for moderation");
     }
 
-    public function edit(Comment $comment){
+    public function edit(Comment $comment)
+    {
         Gate::authorize('comment', $comment);
-    }
-    public function update(Comment $comment){
-        Gate::authorize('comment', $comment);
-        return 0;
+        return view('comment.edit', compact('comment'));
     }
 
-    public function delete(Comment $comment){
+    public function update(Request $request, Comment $comment)
+    {
         Gate::authorize('comment', $comment);
-        return 0;
+
+        $validated = $request->validate([
+            'text' => 'min:10|required',
+        ]);
+
+        $comment->update(['text' => $validated['text']]);
+        
+        return redirect()
+            ->route('article.show', $comment->article_id)
+            ->with('message', 'Комментарий обновлён');
     }
 
-    public function accept(Comment $comment){
+    public function destroy(Comment $comment)
+    {
+        Gate::authorize('comment', $comment);
+        
+        $articleId = $comment->article_id;
+        $comment->delete();
+        
+        return redirect()
+            ->route('article.show', $articleId)
+            ->with('message', 'Комментарий удалён');
+    }
+
+
+    public function accept(Comment $comment)
+    {
+        Gate::authorize('comment.accept', $comment);
         $comment->accept = true;
         $comment->save();
         return redirect()->route('comment.index');
     }
 
-    public function reject(Comment $comment){
+    public function reject(Comment $comment)
+    {
+        Gate::authorize('comment.reject', $comment);
         $comment->accept = false;
         $comment->save();
         return redirect()->route('comment.index');
