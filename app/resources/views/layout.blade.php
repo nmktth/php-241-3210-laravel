@@ -68,7 +68,7 @@
   </div>
 </nav>
         </header>
-        <main>
+        <main style="padding-bottom: 8%;">
           <div class="container mt-5">
             <div id="app">
 
