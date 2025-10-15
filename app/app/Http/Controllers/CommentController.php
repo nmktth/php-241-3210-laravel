@@ -5,12 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Comment;
 use App\Models\User;
-use App\Models\Article;;
+use App\Models\Article;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Cache;
 use App\Jobs\VeryLongJob;
 use App\Notifications\NewCommentNotify;
-
 
 class CommentController extends Controller
 {
@@ -28,8 +28,12 @@ class CommentController extends Controller
         $comment-> text = $request->text;
         $comment->article_id = $request->article_id;
         $comment->user_id = auth()->id();
+        
         if($comment->save())
             VeryLongJob::dispatch($article, $comment, auth()->user()->name);
+        
+        Cache::forget('article_show_' . $request->article_id);
+        
         return redirect()->route('article.show', $request->article_id)->with('message', "Comment add succesful and enter for moderation");
     }
 
@@ -49,6 +53,8 @@ class CommentController extends Controller
 
         $comment->update(['text' => $validated['text']]);
         
+        Cache::forget('article_show_' . $comment->article_id);
+        
         return redirect()
             ->route('article.show', $comment->article_id)
             ->with('message', 'Комментарий обновлён');
@@ -61,22 +67,22 @@ class CommentController extends Controller
         $articleId = $comment->article_id;
         $comment->delete();
         
+        Cache::forget('article_show_' . $articleId);
+        
         return redirect()
             ->route('article.show', $articleId)
             ->with('message', 'Комментарий удалён');
     }
 
-
     public function accept(Comment $comment)
     {
         Gate::authorize('comment.accept', $comment);
         $comment->accept = true;
-        $users = User::where('id', '!=', $comment->user_id)->get();
+        
         if($comment->save()){
-            // Получаем всех пользователей кроме автора комментария
-            $users = User::where('id', '!=', $comment->user_id)->get();
+            Cache::forget('article_show_' . $comment->article_id);
             
-            // Отправляем уведомления только читателям (не аутентифицированным в данной сессии)
+            $users = User::where('id', '!=', $comment->user_id)->get();
             Notification::send($users, new NewCommentNotify($comment));
         }
         return redirect()->route('comment.index');
@@ -87,8 +93,9 @@ class CommentController extends Controller
         Gate::authorize('comment.reject', $comment);
         $comment->accept = false;
         $comment->save();
+        
+        Cache::forget('article_show_' . $comment->article_id);
+        
         return redirect()->route('comment.index');
     }
-
-    
 }

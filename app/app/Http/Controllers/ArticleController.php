@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Cache;
 use App\Events\NewArticleEvent;
 
 
@@ -16,8 +17,13 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articles = Article::latest()->paginate(5);
-        return view('/article/article', ['articles'=>$articles]);
+        $currentPage = request()->get('page', 1);
+        
+        $articles = Cache::remember('articles_page_' . $currentPage, 60, function () {
+            return Article::latest()->paginate(5);
+        });
+        
+        return view('/article/article', ['articles' => $articles]);
     }
 
     /**
@@ -48,6 +54,14 @@ class ArticleController extends Controller
         if($article->save()){
             NewArticleEvent::dispatch($article);
         }
+        
+        // Удаляем кэш главной страницы и всех страниц пагинации
+        $page = 1;
+        while (Cache::has('articles_page_' . $page)) {
+            Cache::forget('articles_page_' . $page);
+            $page++;
+        }
+        
         return redirect()->route('article.index')->with('message','Create successful');
     }
 
@@ -64,10 +78,20 @@ class ArticleController extends Controller
                 ->delete();
         }
         
+    $cacheKey = 'article_show_' . $article->id;
+    
+    $data = Cache::rememberForever($cacheKey, function () use ($article) {
         $comments = Comment::where('article_id', $article->id)
                             ->where('accept', true)
                             ->get();
-        return view('article.show', ['article'=>$article, 'comments'=>$comments]);
+        
+        return [
+            'article' => $article,
+            'comments' => $comments
+        ];
+    });
+    
+    return view('article.show', $data);
     }
 
     /**
@@ -90,11 +114,16 @@ class ArticleController extends Controller
             'title' => 'required|min:10',
             'text' => 'max:100'
         ]);
+        
         $article->date_public = $request->date;
         $article->title = request('title');
         $article->text = $request->text;
         $article->users_id = 1;
         $article->save();
+        
+        // Очищаем весь кэш
+        Cache::flush();
+        
         return redirect()->route('article.show', ['article'=>$article->id])->with('message','Update successful');
     }
 
@@ -105,6 +134,10 @@ class ArticleController extends Controller
     {
         Gate::authorize('delete', $article);
         $article->delete();
+        
+        // Очищаем весь кэш
+        Cache::flush();
+        
         return redirect()->route('article.index')->with('message','Delete successful');
     }
 }
