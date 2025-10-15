@@ -56,6 +56,14 @@ class ArticleController extends Controller
      */
     public function show(Article $article)
     {
+        // Удаляем уведомления для этой статьи
+        if (auth()->check()) {
+            auth()->user()->notifications()
+                ->where('type', 'App\Notifications\NewCommentNotify')
+                ->where('data->comment->article_id', $article->id)
+                ->delete();
+        }
+        
         $comments = Comment::where('article_id', $article->id)
                             ->where('accept', true)
                             ->get();

@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Comment;
-use App\Models\Article;
+use App\Models\User;
+use App\Models\Article;;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 use App\Jobs\VeryLongJob;
+use App\Notifications\NewCommentNotify;
 
 
 class CommentController extends Controller
@@ -68,7 +71,14 @@ class CommentController extends Controller
     {
         Gate::authorize('comment.accept', $comment);
         $comment->accept = true;
-        $comment->save();
+        $users = User::where('id', '!=', $comment->user_id)->get();
+        if($comment->save()){
+            // Получаем всех пользователей кроме автора комментария
+            $users = User::where('id', '!=', $comment->user_id)->get();
+            
+            // Отправляем уведомления только читателям (не аутентифицированным в данной сессии)
+            Notification::send($users, new NewCommentNotify($comment));
+        }
         return redirect()->route('comment.index');
     }
 
@@ -79,4 +89,6 @@ class CommentController extends Controller
         $comment->save();
         return redirect()->route('comment.index');
     }
+
+    
 }

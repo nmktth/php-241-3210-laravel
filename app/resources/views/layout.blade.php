@@ -43,17 +43,29 @@
         <li class="nav-item">
           <a class="nav-link" href="/contact">Contacts</a>
         </li>
+        @auth
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Dropdown
+          <a class="nav-link dropdown-toggle position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Уведомления
+            @if(auth()->user()->unreadNotifications->count() > 0)
+              <span class="position-absolute top-0 start-100 translate-middle badge bg-danger rounded-pill">
+                {{ auth()->user()->unreadNotifications->count() }}
+              </span>
+            @endif
           </a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Action</a></li>
-            <li><a class="dropdown-item" href="#">Another action</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#">Something else here</a></li>
+          <ul class="dropdown-menu" style="min-width: 300px; max-height: 400px; overflow-y: auto;">
+            @foreach(auth()->user()->notifications as $notify)
+              <li>
+                <a class="dropdown-item {{ $notify->read_at ? '' : 'fw-bold text-primary' }}" 
+                  href="/article/{{$notify->data['comment']['article_id']}}">
+                  {{ $notify->data['comment']['text'] }}
+                </a>
+              </li>
+            @endforeach
           </ul>
         </li>
+        @endauth
+        <script src=/notify.js></script>
       </ul>
       <div class="d-flex">
       @guest
