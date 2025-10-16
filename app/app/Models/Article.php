@@ -8,6 +8,12 @@ use Illuminate\Bus\Queueable;
 
 class Article extends Model
 {
+    protected $fillable = [
+        'title', 
+        'text', 
+        'users_id',
+        'date_public'
+    ];
     use HasFactory;
 
     public function users(){
